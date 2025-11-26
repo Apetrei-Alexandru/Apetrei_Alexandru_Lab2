@@ -17,6 +17,8 @@ namespace Apetrei_Alexandru_Lab2.Data
         public DbSet<Apetrei_Alexandru_Lab2.Models.Book> Book { get; set; } = default!;
         public DbSet<Apetrei_Alexandru_Lab2.Models.Customer> Customer { get; set; } = default!;
         public DbSet<Apetrei_Alexandru_Lab2.Models.Genre> Genre { get; set; } = default!;
+
+        public DbSet<Author> Author { get; set; } = default!;
     }
 }
 
