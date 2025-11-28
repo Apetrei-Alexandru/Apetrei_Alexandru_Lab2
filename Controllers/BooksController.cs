@@ -19,43 +19,55 @@ namespace Apetrei_Alexandru_Lab2.Controllers
             _context = context;
         }
 
-        // GET: Books with sorting
+        // GET: Books with sorting and searching
         public async Task<IActionResult> Index(string sortOrder, string searchString)
         {
             ViewData["TitleSortParm"] = String.IsNullOrEmpty(sortOrder) ? "title_desc" : "";
             ViewData["PriceSortParm"] = sortOrder == "Price" ? "price_desc" : "Price";
+            ViewData["AuthorSortParm"] = sortOrder == "author" ? "author_desc" : "author";
             ViewData["CurrentFilter"] = searchString;
-            var books = from b in _context.Book
-                        join a in _context.Author on b.AuthorID equals a.ID
-                        select new BookViewModel
-                        {
-                            ID = b.ID,
-                            Title = b.Title,
-                            Price = b.Price,
-                            FullName = a.FullName
-                        };
-            if (!String.IsNullOrEmpty(searchString))
+
+            var booksQuery = _context.Book.Include(b => b.Author).Include(b => b.Genre).AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchString))
             {
-                books = books.Where(s => s.Title.Contains(searchString));
+                booksQuery = booksQuery.Where(b => b.Title.Contains(searchString));
             }
 
             switch (sortOrder)
             {
                 case "title_desc":
-                    books = books.OrderByDescending(b => b.Title);
+                    booksQuery = booksQuery.OrderByDescending(b => b.Title);
                     break;
                 case "Price":
-                    books = books.OrderBy(b => b.Price);
+                    booksQuery = booksQuery.OrderBy(b => b.Price);
                     break;
                 case "price_desc":
-                    books = books.OrderByDescending(b => b.Price);
+                    booksQuery = booksQuery.OrderByDescending(b => b.Price);
+                    break;
+                case "author":
+                    booksQuery = booksQuery.OrderBy(b => b.Author.LastName);
+                    break;
+                case "author_desc":
+                    booksQuery = booksQuery.OrderByDescending(b => b.Author.LastName);
                     break;
                 default:
-                    books = books.OrderBy(b => b.Title);
+                    booksQuery = booksQuery.OrderBy(b => b.Title);
                     break;
             }
 
-            return View(await books.AsNoTracking().ToListAsync());
+            var books = await booksQuery
+                .Select(b => new BookViewModel
+                {
+                    ID = b.ID,
+                    Title = b.Title,
+                    Price = b.Price,
+                    FullName = b.Author.FullName
+                })
+                .AsNoTracking()
+                .ToListAsync();
+
+            return View(books);
         }
 
         // GET: Books/Details/5
@@ -65,7 +77,9 @@ namespace Apetrei_Alexandru_Lab2.Controllers
 
             var book = await _context.Book
                 .Include(s => s.Orders)
-                .ThenInclude(e => e.Customer)
+                    .ThenInclude(e => e.Customer)
+                .Include(b => b.Author)
+                .Include(b => b.Genre)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
 
