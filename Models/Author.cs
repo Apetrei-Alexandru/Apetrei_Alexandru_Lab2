@@ -13,6 +13,15 @@ namespace Apetrei_Alexandru_Lab2.Models
         [Required]
         public string LastName { get; set; }
 
+        public string FullName
+        {
+
+            get
+            {
+                return FirstName + " " + LastName;
+            }
+        }
+
         // Navigation property – un autor are mai multe cărți
         public ICollection<Book>? Books { get; set; }
     }

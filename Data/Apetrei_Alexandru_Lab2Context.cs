@@ -19,6 +19,7 @@ namespace Apetrei_Alexandru_Lab2.Data
         public DbSet<Apetrei_Alexandru_Lab2.Models.Genre> Genre { get; set; } = default!;
 
         public DbSet<Author> Author { get; set; } = default!;
+        public DbSet<Apetrei_Alexandru_Lab2.Models.Order> Order { get; set; } = default!;
     }
 }
 
