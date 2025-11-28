@@ -33,8 +33,12 @@ namespace Apetrei_Alexandru_Lab2.Controllers
                 return NotFound();
             }
 
+            // Include Books și Genre pentru fiecare carte
             var author = await _context.Author
+                .Include(a => a.Books)
+                    .ThenInclude(b => b.Genre)
                 .FirstOrDefaultAsync(m => m.ID == id);
+
             if (author == null)
             {
                 return NotFound();
@@ -50,17 +54,22 @@ namespace Apetrei_Alexandru_Lab2.Controllers
         }
 
         // POST: Authors/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,FirstName,LastName")] Author author)
+        public async Task<IActionResult> Create([Bind("FirstName,LastName")] Author author)
         {
-            if (ModelState.IsValid)
+            try
             {
-                _context.Add(author);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    _context.Add(author);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact the administrator.");
             }
             return View(author);
         }
@@ -82,8 +91,6 @@ namespace Apetrei_Alexandru_Lab2.Controllers
         }
 
         // POST: Authors/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ID,FirstName,LastName")] Author author)
@@ -143,9 +150,9 @@ namespace Apetrei_Alexandru_Lab2.Controllers
             if (author != null)
             {
                 _context.Author.Remove(author);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
