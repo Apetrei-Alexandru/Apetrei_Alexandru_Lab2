@@ -101,5 +101,41 @@ namespace Apetrei_Alexandru_Lab2.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: CustomersGrpc/Edit/5
+        public IActionResult Edit(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var client = new CustomerService.CustomerServiceClient(channel);
+            GrpcCustomer customer = client.Get(new CustomerId() { Id = (int)id });
+
+            if (customer == null)
+                return NotFound();
+
+            return View(customer); // trimite obiectul gRPC la View
+        }
+
+        // POST: CustomersGrpc/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, GrpcCustomer customer)
+        {
+            if (id != customer.CustomerId)
+                return BadRequest();
+
+            if (ModelState.IsValid)
+            {
+                var client = new CustomerService.CustomerServiceClient(channel);
+
+                // Trimite update la serverul gRPC
+                client.Update(customer);
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(customer);
+        }
+
     }
 }
